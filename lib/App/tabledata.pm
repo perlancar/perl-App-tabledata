@@ -58,14 +58,15 @@ $SPEC{tabledata} = {
                 'list_actions',
                 'list_installed',
                 #'list_cpan',
-                'dump',
+                'dump_as_aoaos',
+                'dump_as_aohos',
                 'dump_as_csv',
                 'list_columns',
                 'count_rows',
                 'pick_rows',
                 #'stat',
             ]}],
-            default => 'dump',
+            default => 'dump_as_aoaos',
             cmdline_aliases => {
                 L => {
                     summary=>'List installed TableData::*',
@@ -80,7 +81,7 @@ $SPEC{tabledata} = {
                 R => {
                     summary=>'Pick random rows from an TableData module',
                     is_flag => 1,
-                    code => sub { my $args=shift; $args->{action} = 'pick' },
+                    code => sub { my $args=shift; $args->{action} = 'pick_rows' },
                 },
                 #S => {
                 #    summary=>'Show statistics contained in the TableData module',
@@ -127,16 +128,36 @@ sub tabledata {
 
     require Module::Load::Util;
     my $obj = Module::Load::Util::instantiate_class_with_optional_args(
-        {ns_prefix=>"ArrayData"}, $args{module});
+        {ns_prefix=>"TableData"}, $args{module});
 
-    if ($action eq 'pick') {
+    if ($action eq 'pick_rows') {
         return [200, "OK", [$obj->pick_items(n=>$args{num})]];
     }
 
-    # dump
-    my @items;
-    while ($obj->has_next_item) { push @items, $obj->get_next_item }
-    [200, "OK", \@items];
+    if ($action eq 'list_columns') {
+        return [200, "OK", [$obj->get_column_names]];
+    }
+
+    if ($action eq 'count_columns') {
+        return [200, "OK", scalar $obj->get_column_count];
+    }
+
+    if ($action eq 'count_rows') {
+        return [200, "OK", scalar $obj->get_row_count];
+    }
+
+    if ($action eq 'dump_as_csv') {
+        return [200, "OK", scalar $obj->as_csv];
+    }
+
+    if ($action eq 'dump_as_aohos') {
+        return [200, "OK", [$obj->get_all_rows_hashref],
+                {'table.fields'=>[$obj->get_column_names]}];
+    }
+
+    # dump_as_aoaos
+    return [200, "OK", [$obj->get_all_rows_arrayref],
+            {'table.fields'=>[$obj->get_column_names]}];
 }
 
 1;
