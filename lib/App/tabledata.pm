@@ -1,14 +1,14 @@
 package App::tabledata;
 
-# AUTHORITY
-# DATE
-# DIST
-# VERSION
-
 use 5.010001;
 use strict;
 use warnings;
 use Log::ger;
+
+# AUTHORITY
+# DATE
+# DIST
+# VERSION
 
 our %SPEC;
 
@@ -64,12 +64,18 @@ $SPEC{tabledata} = {
                 'list_columns',
                 'count_rows',
                 'pick_rows',
+                'head',
                 #'stat',
             ]}],
             default => 'dump_as_aoaos',
             cmdline_aliases => {
+                actions => {
+                    summary=>'List available actions (alias for --action=list_actions)',
+                    is_flag => 1,
+                    code => sub { my $args=shift; $args->{action} = 'list_actions' },
+                },
                 L => {
-                    summary=>'List installed TableData::*',
+                    summary=>'List installed TableData::* (alias for --action=list_installed)',
                     is_flag => 1,
                     code => sub { my $args=shift; $args->{action} = 'list_installed' },
                 },
@@ -78,6 +84,11 @@ $SPEC{tabledata} = {
                 #    is_flag => 1,
                 #    code => sub { my $args=shift; $args->{action} = 'list_cpan' },
                 #},
+                H => {
+                    summary=>'Get the first N row(s) (alias for --action=head)',
+                    is_flag => 1,
+                    code => sub { my $args=shift; $args->{action} = 'head' },
+                },
                 R => {
                     summary=>'Pick random rows from an TableData module',
                     is_flag => 1,
@@ -95,7 +106,7 @@ $SPEC{tabledata} = {
             cmdline_aliases => {l=>{}},
         },
         num => {
-            summary => 'Number of rows to pick (for -R)',
+            summary => 'Number of rows to get (e.g. for pick_rows or head action)',
             schema => 'posint*',
             default => 1,
             cmdline_aliases => {n=>{}},
@@ -134,6 +145,20 @@ sub tabledata {
         return [200, "OK", [$obj->pick_items(n=>$args{num})]];
     }
 
+    if ($action eq 'head') {
+        my @rows;
+        my $i = 0;
+        $obj->each_item(
+            sub {
+                push @rows, $_[0];
+                return 0 if ++$i >= $args{num};
+                1;
+            });
+        return [200, "OK", \@rows, {
+            'table.fields'=>[$obj->get_column_names],
+        }];
+    }
+
     if ($action eq 'list_columns') {
         return [200, "OK", [$obj->get_column_names]];
     }
@@ -151,13 +176,15 @@ sub tabledata {
     }
 
     if ($action eq 'dump_as_aohos') {
-        return [200, "OK", [$obj->get_all_rows_hashref],
-                {'table.fields'=>[$obj->get_column_names]}];
+        return [200, "OK", [$obj->get_all_rows_hashref], {
+            'table.fields'=>[$obj->get_column_names],
+        }];
     }
 
     # dump_as_aoaos
-    return [200, "OK", [$obj->get_all_rows_arrayref],
-            {'table.fields'=>[$obj->get_column_names]}];
+    return [200, "OK", [$obj->get_all_rows_arrayref], {
+        'table.fields'=>[$obj->get_column_names],
+    }];
 }
 
 1;
