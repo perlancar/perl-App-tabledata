@@ -65,7 +65,7 @@ $SPEC{tabledata} = {
                 'count_rows',
                 'pick_rows',
                 'head',
-                #'stat',
+                'stat',
             ]}],
             default => 'dump_as_aoaos',
             cmdline_aliases => {
@@ -94,11 +94,11 @@ $SPEC{tabledata} = {
                     is_flag => 1,
                     code => sub { my $args=shift; $args->{action} = 'pick_rows' },
                 },
-                #S => {
-                #    summary=>'Show statistics contained in the TableData module',
-                #    is_flag => 1,
-                #    code => sub { my $args=shift; $args->{action} = 'stat' },
-                #},
+                S => {
+                    summary=>'Show information & statistics about the TableData module',
+                    is_flag => 1,
+                    code => sub { my $args=shift; $args->{action} = 'stat' },
+                },
             },
         },
         detail => {
@@ -181,10 +181,27 @@ sub tabledata {
         }];
     }
 
-    # dump_as_aoaos
-    return [200, "OK", [$obj->get_all_rows_arrayref], {
-        'table.fields'=>[$obj->get_column_names],
-    }];
+    if ($action eq 'dump_as_aoaos') {
+        return [200, "OK", [$obj->get_all_rows_arrayref], {
+            'table.fields'=>[$obj->get_column_names],
+        }];
+    }
+
+    if ($action eq 'stat') {
+        my %stat;
+        my $mod = "TableData::$args{module}";
+
+        $stat{module} = $mod;
+        require Module::Abstract;
+        $stat{module_abstract} = Module::Abstract::module_abstract($mod);
+
+        $stat{row_count} = $obj->get_row_count;
+        $stat{column_count} = $obj->get_column_count;
+
+        [200, "OK", \%stat];
+    }
+
+    return [400, "Unknown action '$action'"];
 }
 
 1;
