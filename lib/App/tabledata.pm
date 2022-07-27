@@ -198,7 +198,7 @@ sub tabledata {
         $stat{row_count} = $obj->get_row_count;
         $stat{column_count} = $obj->get_column_count;
 
-        [200, "OK", \%stat];
+        return [200, "OK", \%stat];
     }
 
     return [400, "Unknown action '$action'"];
