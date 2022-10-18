@@ -209,7 +209,7 @@ sub tabledata {
 
 =head1 SYNOPSIS
 
-See the included script L<arraydata>.
+See the included script L<tabledata>.
 
 
 =head1 ENVIRONMENT
