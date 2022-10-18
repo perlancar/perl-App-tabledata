@@ -116,6 +116,11 @@ $SPEC{tabledata} = {
         #    summary => 'Use local CPAN mirror first when available (for -C)',
         #},
     },
+    links => [
+        {url=>'prog:td'},
+        {url=>'prog:arraydata'},
+        {url=>'prog:hashdata'},
+    ],
     examples => [
     ],
 };
@@ -218,3 +223,5 @@ See the included script L<tabledata>.
 =head1 SEE ALSO
 
 L<ArrayData> and C<ArrayData::*> modules.
+
+L<HashData> and C<HashData::*> modules.
